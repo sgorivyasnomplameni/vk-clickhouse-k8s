@@ -11,8 +11,8 @@ service:
 
 # Настройки хранилища данных ClickHouse
 storage:
-  size: 1Gi         # Минимальный объём, чтобы база сохраняла состояние
-  className: "local-path"
+  size: 1Gi
+  className: "standard"
 
 # Список пользователей ClickHouse
 # Пароли будут автоматически кодироваться в base64 в Secret
