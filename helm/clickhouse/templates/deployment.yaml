@@ -29,9 +29,14 @@ spec:
             - name: clickhouse-storage
               mountPath: /var/lib/clickhouse
 
-            # Пользовательские конфиги ClickHouse
+            # Пользовательские конфиги ClickHouse (без паролей)
             - name: users-config
               mountPath: /etc/clickhouse-server/users.d
+
+            # Secret с паролями
+            - name: users-secret
+              mountPath: /etc/clickhouse-server/users-secret
+              readOnly: true
 
       # Описываем доступные volumes
       volumes:
@@ -40,7 +45,12 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "clickhouse.fullname" . }}-storage
 
-        # ConfigMap с пользователями
+        # ConfigMap с пользователями без паролей
         - name: users-config
           configMap:
-            name: {{ include "clickhouse.fullname" . }}-users
+            name: {{ include "clickhouse.fullname" . }}-users-config
+
+        # Secret с паролями
+        - name: users-secret
+          secret:
+            secretName: {{ include "clickhouse.fullname" . }}-users

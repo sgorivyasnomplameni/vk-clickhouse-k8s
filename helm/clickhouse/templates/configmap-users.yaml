@@ -1,16 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "clickhouse.fullname" . }}-users
+  name: {{ include "clickhouse.fullname" . }}-users-config
 data:
-  # XML с определением пользователей ClickHouse
-  # Генерируется по списку в values.yaml
+  # XML с конфигурацией пользователей ClickHouse без паролей
   users.xml: |
     <clickhouse>
       <users>
         {{- range .Values.users }}
         <{{ .name }}>
-          <password>{{ .password }}</password>
           <profile>default</profile>
           <networks>
             <ip>::/0</ip> <!-- Разрешаем подключения отовсюду -->
