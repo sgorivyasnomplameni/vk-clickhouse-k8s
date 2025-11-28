@@ -1,0 +1,10 @@
+apiVersion: v2
+name: clickhouse
+description: Single ClickHouse deployment for Kubernetes test assignment
+type: application
+
+# Версия самого чарта
+version: 0.1.0
+
+# Версия приложения (ClickHouse)
+appVersion: "24.12"

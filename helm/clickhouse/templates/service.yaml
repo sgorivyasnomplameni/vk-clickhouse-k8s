@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clickhouse.fullname" . }}
+spec:
+  # Тип сервиса можно изменять через values.yaml
+  type: {{ .Values.service.type }}
+
+  ports:
+    # HTTP API ClickHouse
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: 8123
+
+  selector:
+    app: {{ include "clickhouse.name" . }}

@@ -1,0 +1,21 @@
+# Параметры Docker-образа ClickHouse
+image:
+  repository: clickhouse/clickhouse-server
+  tag: "24.12"
+  pullPolicy: IfNotPresent
+
+# Настройки Kubernetes Service
+service:
+  type: ClusterIP
+  port: 8123
+
+# Настройки хранилища данных ClickHouse
+storage:
+  size: 1Gi         # Минимальный объём, чтобы база сохраняла состояние
+  className: ""     # По умолчанию будет использовать StorageClass по умолчанию
+
+# Список пользователей ClickHouse.
+# Пароль позже будет шаблонизирован в Secret
+users:
+  - name: default
+    password: "password"
