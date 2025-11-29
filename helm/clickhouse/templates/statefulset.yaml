@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "clickhouse.fullname" . }}
+spec:
+  # Привязка к headless-service для стабильных DNS (pod-0, pod-1...)
+  serviceName: {{ include "clickhouse.fullname" . }}-headless
+  replicas: 1  # Single-инсталляция, как требует ТЗ
+
+  selector:
+    matchLabels:
+      app: {{ include "clickhouse.name" . }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ include "clickhouse.name" . }}
+
+    spec:
+      containers:
+        - name: clickhouse
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
+          # Адекватный запуск ClickHouse
+          args: ["--userfiles-path=/var/lib/clickhouse/user_files/"]
+
+          ports:
+            - name: http
+              containerPort: 8123
+            - name: tcp
+              containerPort: 9000
+
+          volumeMounts:
+            # Персистентные данные БД
+            - name: data
+              mountPath: /var/lib/clickhouse
+            # Конфиг пользователей из Secret
+            - name: users-config
+              mountPath: /etc/clickhouse-server/users.d/users.xml
+              subPath: users.xml
+
+          # Проверяем что ClickHouse реально поднялся
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8123
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+      # Secret подключается как том
+      volumes:
+        - name: users-config
+          secret:
+            secretName: {{ include "clickhouse.fullname" . }}-users
+
+  # Динамический PVC создается автоматически
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.storage.className }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}

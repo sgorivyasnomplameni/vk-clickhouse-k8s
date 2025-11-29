@@ -1,18 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
+  # Основной сервис для доступа к ClickHouse
   name: {{ include "clickhouse.fullname" . }}
-  labels:
-    app: {{ include "clickhouse.name" . }}
 spec:
-  # Тип сервиса можно изменять через values.yaml
-  type: {{ .Values.service.type }}
-
-  ports:
-    # HTTP API ClickHouse
-    - name: http
-      port: {{ .Values.service.port }}
-      targetPort: 8123
-
+  type: {{ .Values.service.type }}  # ClusterIP по умолчанию
   selector:
     app: {{ include "clickhouse.name" . }}
+  ports:
+    - name: http       # HTTP API
+      port: {{ .Values.service.port }}
+      targetPort: 8123
+    - name: tcp        # Клиентский TCP порт
+      port: 9000
+      targetPort: 9000

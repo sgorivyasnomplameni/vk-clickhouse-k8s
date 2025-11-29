@@ -1,21 +1,17 @@
 .PHONY: deploy status test clean help
 
-# Основные команды
-deploy: ## Развернуть ClickHouse в Kubernetes
-	@echo "🚀 Deploying ClickHouse..."
+deploy: ## Deploy ClickHouse
 	./scripts/deploy.sh
 
-status: ## Проверить статус развертывания
-	@echo "📊 Checking status..."
+status: ## Show app status
 	./scripts/test-connection.sh status
 
-test: ## Протестировать подключение и пользователей
-	@echo "🧪 Testing connection..."
-	./scripts/test-connection.sh
+test: ## Test connectivity + login
+	./scripts/test-connection.sh test
 
-clean: ## Удалить ClickHouse из кластера
-	@echo "🧹 Cleaning up..."
+clean: ## Remove everything (with PVC)
 	./scripts/cleanup.sh
 
-help: ## Показать эту справку
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+help: ## Help menu
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	| sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'

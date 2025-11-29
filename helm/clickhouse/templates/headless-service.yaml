@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clickhouse.fullname" . }}-headless
+spec:
+  # Обязателен для StatefulSet чтобы обеспечить стабильные DNS-имена подов
+  clusterIP: None
+  selector:
+    app: {{ include "clickhouse.name" . }}

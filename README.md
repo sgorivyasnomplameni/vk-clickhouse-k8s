@@ -1,81 +1,80 @@
 # ClickHouse Kubernetes Deployment
 
-Простое автоматическое разворачивание базы данных ClickHouse в Kubernetes.
+Single-инсталляция ClickHouse с сохранением данных, безопасными пользователями и автоматизацией развертывания в Kubernetes.
 
-## 📋 Техническое решение
+## Архитектура
 
-### Архитектура
-
-- **Single-инсталляция** - один pod с персистентным хранилищем
-- **Helm-based** - параметризованная конфигурация через values.yaml
-- **Автоматизация** - Makefile и bash-скрипты для управления
-
-### Компоненты
-
-- **ClickHouse Pod** - контейнер с выбранной версией ClickHouse
-- **Persistent Volume** - хранение данных между перезапусками
-- **ConfigMap** - конфигурация пользователей
-- **Service** - сетевой доступ к ClickHouse
+- Один ClickHouse instance
+- 🧠 StatefulSet для гарантированного хранения состояния
+- 💾 PersistentVolumeClaim для данных
+- 🔐 Secret с пользователями и паролями
+- 🌐 ClusterIP Service для доступа к API
+- 🕳️ Headless Service для устойчивого DNS-имени пода
+- 🎛 Управление через Helm + Makefile
 
 ## 🚀 Быстрый старт
 
-### Автоматическое развертывание (рекомендуется)
-
 ```bash
-# Полное развертывание и тестирование
-make deploy    # Установка ClickHouse
-make test      # Проверка работы
-make status    # Статус компонентов
-make clean     # Удаление
+make deploy     # Развернуть ClickHouse
+make test       # Проверить соединение и пользователей
+make status     # Проверка ресурсов
+make clean      # Удаление всего
 ```
 
-### Ручное управление
+## Ручное управление
 
 ```bash
-# Через скрипты
-./scripts/deploy.sh          # Развертывание
-./scripts/test-connection.sh # Тестирование
-./scripts/cleanup.sh         # Очистка
+./scripts/deploy.sh
+./scripts/test-connection.sh
+./scripts/cleanup.sh
+```
 
-# Через Helm напрямую
+или через Helm:
+
+```bash
 helm install clickhouse ./helm/clickhouse -n clickhouse --create-namespace
 ```
 
 ## ⚙️ Конфигурация
 
-### Изменение версии ClickHouse
+Редактируется в `helm/clickhouse/values.yaml`:
 
-В файле `helm/clickhouse/values.yaml`:
+### Изменение версии ClickHouse
 
 ```yaml
 image:
   repository: clickhouse/clickhouse-server
-  tag: "24.12"  # Желаемая версия
+  tag: "24.12"
 ```
 
-### Добавление пользователей
-
-В файле `helm/clickhouse/values.yaml`:
-
-```yaml
-users:
-  - name: admin
-    password: "admin123"
-  - name: readonly
-    password: "readonly123"
-```
-
-### Настройка ресурсов
+### Настройка хранилища
 
 ```yaml
 storage:
   size: 1Gi
   className: "standard"
+```
 
+### Сетевой доступ
+
+```yaml
 service:
-  type: ClusterIP
   port: 8123
 ```
+
+### Управление пользователями
+
+```yaml
+users:
+  - name: default
+    password: "password"
+  - name: analyst
+    password: "analyst123"
+  - name: readonly
+    password: "readonlypass"
+```
+
+Пароли автоматически превращаются в Secret.
 
 ## 🔧 Требования
 
@@ -87,38 +86,36 @@ service:
 
 ```bash
 .
-├── helm/                 # Helm chart
+├── helm/
 │   └── clickhouse/
-│       ├── Chart.yaml           # Метаданные chart
-│       ├── values.yaml          # Параметры конфигурации
-│       └── templates/           # Kubernetes манифесты
-│           ├── deployment.yaml  # Развертывание ClickHouse
-│           ├── service.yaml     # Сетевой доступ
-│           ├── pvc.yaml         # Персистентное хранилище
-│           └── configmap-users.yaml  # Пользователи БД
-├── scripts/              # Скрипты автоматизации
-│   ├── deploy.sh         # Развертывание
-│   ├── test-connection.sh # Тестирование
-│   └── cleanup.sh        # Очистка
-├── Makefile              # Управление командами
-└── README.md             # Документация
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│           ├── statefulset.yaml
+│           ├── service.yaml      
+│           ├── headless-service.yaml
+│           └── secret-users.yaml
+├── scripts/
+│   ├── deploy.sh
+│   ├── test-connection.sh
+│   └── cleanup.sh
+├── Makefile
+└── README.md
 ```
 
 ## 🧪 Проверка работы
 
-### Тестирование подключения
+### Через локальный порт-форвард
 
 ```bash
-# Port-forward для локального доступа
 kubectl port-forward -n clickhouse svc/clickhouse 8123:8123
-
-# Проверка HTTP API
 curl http://localhost:8123
-# Ожидаемый результат: "Ok."
+```
 
-# Проверка через clickhouse-client
-kubectl exec -it -n clickhouse deployment/clickhouse -- \
-  clickhouse-client --user=default --password=password --query "SELECT version()"
+Ожидается:
+
+```bash
+Ok.
 ```
 
 ### Проверка пользователей
@@ -128,21 +125,21 @@ kubectl exec -it -n clickhouse deployment/clickhouse -- \
 1. Пользователь default:
 
     ```bash
-    kubectl exec -it -n clickhouse deployment/clickhouse -- \
+    kubectl exec -it -n clickhouse statefulset/clickhouse -- \
       clickhouse-client --user=default --password=password --query "SELECT version()"
     ```
 
 2. Пользователь analyst:
 
     ```bash
-    kubectl exec -it -n clickhouse deployment/clickhouse -- \
+    kubectl exec -it -n clickhouse statefulset/clickhouse -- \
       clickhouse-client --user=analyst --password=analyst123 --query "SHOW DATABASES"
     ```
   
 3. Пользователь readonly:
 
     ```bash
-    kubectl exec -it -n clickhouse deployment/clickhouse -- \
+    kubectl exec -it -n clickhouse statefulset/clickhouse -- \
       clickhouse-client --user=readonly --password=readonlypass --query "SELECT 1"
     ```
 
@@ -198,7 +195,7 @@ kubectl delete namespace clickhouse
 
 ```bash
 kubectl describe pod -n clickhouse -l app=clickhouse
-kubectl logs -n clickhouse deployment/clickhouse
+kubectl logs -n clickhouse clickhouse-0
 ```
 
 ### Проблемы с хранилищем

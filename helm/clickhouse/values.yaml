@@ -1,24 +1,50 @@
-# Параметры Docker-образа ClickHouse
+# Настройки Docker-образа ClickHouse
 image:
   repository: clickhouse/clickhouse-server
-  tag: "24.12"  # Желаемая версия ClickHouse
+  tag: "24.12"  # Версия ClickHouse
   pullPolicy: IfNotPresent
 
-# Настройки Kubernetes Service
+# Основной сервис (доступ к HTTP API)
 service:
   type: ClusterIP
   port: 8123
 
-# Настройки хранилища данных ClickHouse
+# Хранилище данных
 storage:
   size: 1Gi
-  className: "standard"
+  className: "standard"  # StorageClass для PVC
 
-# Список пользователей ClickHouse с паролями
-users:
-  - name: default
-    password: "password"
-  - name: analyst
-    password: "analyst123"
-  - name: readonly
-    password: "readonlypass"
+# Пароли вынесены отдельно, чтобы можно было менять без перелопачивания XML
+passwords:
+  default: "password"
+  analyst: "analyst123"
+  readonly: "readonlypass"
+
+# XML для ClickHouse пользователей
+# Шаблон попадает в Secret и монтируется в /etc/clickhouse-server/users.d/
+usersConfig: |
+  <yandex>
+    <users>
+      <default>
+        <password>{{ .Values.passwords.default }}</password>
+        <profile>default</profile>
+        <networks>
+          <ip>::/0</ip>
+        </networks>
+      </default>
+      <analyst>
+        <password>{{ .Values.passwords.analyst }}</password>
+        <profile>default</profile>
+        <networks>
+          <ip>::/0</ip>
+        </networks>
+      </analyst>
+      <readonly>
+        <password>{{ .Values.passwords.readonly }}</password>
+        <profile>readonly</profile>
+        <networks>
+          <ip>::/0</ip>
+        </networks>
+      </readonly>
+    </users>
+  </yandex>

@@ -3,17 +3,16 @@ set -e
 
 echo "🚀 Starting ClickHouse deployment..."
 
-# Проверяем что Minikube запущен
+# Проверка запуска Minikube
 if ! minikube status >/dev/null 2>&1; then
-    echo "❌ Minikube is not running. Starting Minikube..."
+    echo "🤦 Minikube is not running. Starting it..."
     minikube start
 fi
 
-# Устанавливаем ClickHouse
-echo "📦 Installing ClickHouse via Helm..."
-helm install clickhouse ./helm/clickhouse -n clickhouse --create-namespace
+echo "📦 Deploying ClickHouse via Helm..."
+helm upgrade --install clickhouse ./helm/clickhouse -n clickhouse --create-namespace
 
-echo "⏳ Waiting for ClickHouse to be ready..."
-kubectl wait --for=condition=ready pod -l app=clickhouse -n clickhouse --timeout=120s
+echo "⏳ Waiting for StatefulSet to be ready..."
+kubectl rollout status statefulset/clickhouse -n clickhouse --timeout=180s
 
-echo "✅ ClickHouse deployed successfully!"
+echo "✨ Deployment complete! ClickHouse is alive and confused!"

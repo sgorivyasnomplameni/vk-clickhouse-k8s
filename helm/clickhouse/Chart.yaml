@@ -1,9 +1,9 @@
 apiVersion: v2
 name: clickhouse
-description: Single ClickHouse deployment for Kubernetes test assignment
+description: Single-instance ClickHouse deployment using StatefulSet
 type: application
 
-# Версия самого чарта
+# Версия чарта
 version: 0.1.0
 
 # Версия приложения (ClickHouse)

@@ -3,7 +3,7 @@
 clickhouse
 {{- end }}
 
-{{/* Полное имя для ресурсов Helm */}}
+{{/* Полное имя для ресурсов */}}
 {{- define "clickhouse.fullname" -}}
-{{ printf "%s" (include "clickhouse.name" .) }}
+{{ include "clickhouse.name" . }}
 {{- end }}
