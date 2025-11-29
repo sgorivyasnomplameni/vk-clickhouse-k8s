@@ -72,13 +72,10 @@ service:
 ### Управление пользователями
 
 ```yaml
-users:
-  - name: default
-    password: "password"
-  - name: analyst
-    password: "analyst123"
-  - name: readonly
-    password: "readonlypass"
+passwords:
+  default: "password"
+  analyst: "analyst123"
+  readonly: "readonlypass"
 ```
 
 Пароли автоматически превращаются в Secret.

@@ -3,7 +3,13 @@ kind: Service
 metadata:
   name: {{ include "clickhouse.fullname" . }}-headless
 spec:
-  # Обязателен для StatefulSet чтобы обеспечить стабильные DNS-имена подов
   clusterIP: None
   selector:
     app: {{ include "clickhouse.name" . }}
+  ports:
+    - name: http
+      port: 8123
+      targetPort: 8123
+    - name: tcp
+      port: 9000
+      targetPort: 9000

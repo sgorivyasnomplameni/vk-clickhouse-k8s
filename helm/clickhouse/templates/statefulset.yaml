@@ -38,10 +38,11 @@ spec:
           # Проверяем что ClickHouse реально поднялся
           readinessProbe:
             httpGet:
-              path: /
+              path: /ping
               port: 8123
             initialDelaySeconds: 10
             periodSeconds: 5
+
 
       # Secret подключается как том
       volumes:
