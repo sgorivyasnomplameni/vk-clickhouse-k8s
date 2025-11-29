@@ -4,13 +4,18 @@ Single-инсталляция ClickHouse с сохранением данных,
 
 ## Архитектура
 
-- Один ClickHouse instance
+Один ClickHouse instance в StatefulSet с PVC и Secret для пользователей. ClusterIP Service для HTTP API, headless service для стабильного DNS имени.
+
 - 🧠 StatefulSet для гарантированного хранения состояния
 - 💾 PersistentVolumeClaim для данных
 - 🔐 Secret с пользователями и паролями
 - 🌐 ClusterIP Service для доступа к API
 - 🕳️ Headless Service для устойчивого DNS-имени пода
 - 🎛 Управление через Helm + Makefile
+
+Диаграмма архитектуры
+
+![ClickHouse Architecture](docs/clickhouse-architecture.png)
 
 ## 🚀 Быстрый старт
 
@@ -19,6 +24,7 @@ Single-инсталляция ClickHouse с сохранением данных,
 ```bash
 minikube start
 ```
+
 ### Автоматическое развертывание
 
 ```bash
@@ -72,10 +78,13 @@ service:
 ### Управление пользователями
 
 ```yaml
-passwords:
-  default: "password"
-  analyst: "analyst123"
-  readonly: "readonlypass"
+users:
+  - name: default
+    password: "password"
+  - name: analyst
+    password: "analyst123"
+  - name: readonly
+    password: "readonlypass"
 ```
 
 Пароли автоматически превращаются в Secret.
@@ -90,21 +99,24 @@ passwords:
 
 ```bash
 .
-├── helm/
-│   └── clickhouse/
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       └── templates/
-│           ├── statefulset.yaml
-│           ├── service.yaml      
-│           ├── headless-service.yaml
-│           └── secret-users.yaml
-├── scripts/
-│   ├── deploy.sh
-│   ├── test-connection.sh
-│   └── cleanup.sh
+├── docs
+│   └── clickhouse-architecture.png
+├── helm
+│   └── clickhouse
+│       ├── Chart.yaml
+│       ├── templates
+│       │   ├── headless-service.yaml
+│       │   ├── _helpers.tpl
+│       │   ├── secret-users.yaml
+│       │   ├── service.yaml
+│       │   └── statefulset.yaml
+│       └── values.yaml
 ├── Makefile
-└── README.md
+├── README.md
+└── scripts
+    ├── cleanup.sh
+    ├── deploy.sh
+    └── test-connection.sh
 ```
 
 ## 🧪 Проверка работы
