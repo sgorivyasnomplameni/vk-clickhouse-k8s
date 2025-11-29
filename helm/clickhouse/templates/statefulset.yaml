@@ -20,10 +20,6 @@ spec:
       containers:
         - name: clickhouse
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-
-          # Адекватный запуск ClickHouse
-          args: ["--userfiles-path=/var/lib/clickhouse/user_files/"]
-
           ports:
             - name: http
               containerPort: 8123
@@ -51,7 +47,7 @@ spec:
       volumes:
         - name: users-config
           secret:
-            secretName: {{ include "clickhouse.fullname" . }}-users
+            secretName: clickhouse-users
 
   # Динамический PVC создается автоматически
   volumeClaimTemplates:

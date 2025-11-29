@@ -11,7 +11,10 @@ check_status() {
 }
 
 get_password() {
-    kubectl get secret clickhouse-users -n clickhouse -o jsonpath="{.data.$1}" | base64 --decode
+    local user=$1
+    # Получаем весь XML и парсим пароль для конкретного пользователя
+    kubectl get secret clickhouse-users -n clickhouse -o jsonpath="{.data.users\.xml}" | base64 --decode | \
+    grep -A1 "<$user>" | grep "<password>" | sed 's/<password>//g' | sed 's/<\/password>//g' | tr -d ' '
 }
 
 test_connection() {
@@ -33,8 +36,9 @@ test_connection() {
     echo "👥 Testing users..."
 
     for user in default analyst readonly; do
+        password=$(get_password $user)
         if kubectl exec -n clickhouse clickhouse-0 -- \
-            clickhouse-client --user=$user --password=$(get_password $user) \
+            clickhouse-client --user=$user --password="$password" \
             --query="SELECT 1" >/dev/null 2>&1; then
             echo "✅ $user authentication OK"
         else
