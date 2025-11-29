@@ -1,7 +1,7 @@
 # Параметры Docker-образа ClickHouse
 image:
   repository: clickhouse/clickhouse-server
-  tag: "24.12"
+  tag: "24.12"  # Желаемая версия ClickHouse
   pullPolicy: IfNotPresent
 
 # Настройки Kubernetes Service
@@ -14,8 +14,7 @@ storage:
   size: 1Gi
   className: "standard"
 
-# Список пользователей ClickHouse
-# Пароли будут автоматически кодироваться в base64 в Secret
+# Список пользователей ClickHouse с паролями
 users:
   - name: default
     password: "password"
